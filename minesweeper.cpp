@@ -6,19 +6,26 @@
 #include <windows.h>
 using namespace std;
 
+/*---------------------Variable declaration----------------*/
 int constantCellNum = 10;
 char cell[10][10];
-bool discoveredCell[10][10];
+int discoveredCell[10][10] = {0};
 bool gameOver = false;
 int totalBombNumber = 0, totalDiscoveredCellNum = 5;
+int difficultyLevel= 4;
+/*---------------------Variable declaration----------------*/
 
-void getInput();
-void showPuzzle();
+/*---------------------Function declaration----------------*/
+void aksThings();
 void bomb();
+void showPuzzle();
+void getInput();
 void gameSucces();
+/*---------------------Function declaration----------------*/
 
 int main() 	
 {
+	aksThings();
 	bomb();
 	while(gameOver == false)
 	{
@@ -40,7 +47,7 @@ void bomb() //function to create bomb and count bomb numbers.
 	{
 		for (int j = 0; j < constantCellNum; ++j)
 		{
-			if (rand()%3 == 0) //randomly generating bomb, marking with '*'.
+			if (rand()%difficultyLevel == 0) //randomly generating bomb, marking with '*'.
 			{
 				cell[i][j] = '*';
 				totalBombNumber++;
@@ -83,11 +90,11 @@ void bomb() //function to create bomb and count bomb numbers.
 		{
 			if (cell[i][j] == '1')
 			{
-				discoveredCell[i][j] = true;
-				discoveredCell[i+1][j+1] = true;
-				discoveredCell[i-1][j-1] = true;
-				discoveredCell[i][j+1] = true;
-				discoveredCell[i+1][j] = true;
+				discoveredCell[i][j] = 1;
+				discoveredCell[i+1][j+1] = 1;
+				discoveredCell[i-1][j-1] = 1;
+				discoveredCell[i][j+1] = 1;
+				discoveredCell[i+1][j] = 1;
 				broken = 1;
 				break;
 			}
@@ -102,27 +109,50 @@ void bomb() //function to create bomb and count bomb numbers.
 
 }
 
+void aksThings()
+{
+	cout<< "Enter difficuluty Level(1-5): ";
+	cin>> difficultyLevel;
+	if (difficultyLevel<1 || difficultyLevel>5)
+	{
+		difficultyLevel = 4;
+	}
+	else 
+	{
+		difficultyLevel = 8- difficultyLevel;
+	}
+
+	cout<< "Enter number of grid along X or Y axis(5-10): ";
+	cin>> constantCellNum;
+	if (constantCellNum<5 || constantCellNum>10)
+	{
+		constantCellNum = 10;
+	}
+	cout<<"Enter Negative coordinate of the cell if you want to flag the cell.\nEnter X and then Y coordinate to discover the cell.\n\n";
+	system("pause");
+}
 
 void showPuzzle()
 {
 	/*-----------------------------columm number will be shown---------------------------------*/
 	cout<<"   ";
-	for (int j = 0; j < 10; ++j)
+	for (int j = 0; j < constantCellNum; ++j)
 	{
 		cout<<' ' << j+1;
 	}
 	cout<<"\n   _";
-	for (int j = 0; j < 10; ++j)
+	for (int j = 0; j < constantCellNum; ++j)
 	{
 		cout<<"__";
 	}
 	cout<<'\n';
 	/*-----------------------------columm number will be shown---------------------------------*/
 
-	for (int i = 0; i < 10; ++i)
+
+	for (int i = 0; i < constantCellNum; ++i)
 	{
 	/*---------------row number will be shown---------------*/
-		if (i==9)
+		if (i>=9)
 		{
 			cout<< i+1 <<"| ";
 		}
@@ -130,37 +160,79 @@ void showPuzzle()
 	/*---------------row number will be shown---------------*/ 
 
 
-	/*---------------------------print the maze/house-------------------------*/
-		for (int j = 0; j < 10; ++j)
+/*---------------------------print the maze/house-------------------------*/
+		for (int j = 0; j < constantCellNum; ++j)
 		{
-			if (discoveredCell[i][j] == false)
+			if (discoveredCell[i][j] == 0)
 			{
 				cout <<"X "; //cell not discovered yet
 			}
-			else 
+			else if(discoveredCell[i][j] == 1)
 			{
 				cout<< cell[i][j]<<' '; //cell discovered. show bomb number around it.
 			}
+			else /*if(discoveredCell[i][j] == 2)*/
+			{
+				cout<< "F "; //cell flagged.
+			}
 		}
-		cout<<endl;
+
+	/*---------------row number will be shown at end---------------*/
+		if (i>=9)
+		{
+			cout<<"|"<< i+1 <<'\n';
+		}
+		else cout<<"| "<< i+1 <<'\n';
+	/*---------------row number will be shown at end---------------*/ 
+
 	}
-	/*---------------------------print the maze/house-------------------------*/
+/*---------------------------print the maze/house-------------------------*/
+
+	/*-----------------------------columm number will be shown at end row---------------------------------*/
+	cout<<"   -";
+	for (int j = 0; j < constantCellNum; ++j)
+	{
+		cout<<"--";
+	}
+	cout<<'\n';
+	cout<<"   ";
+	for (int j = 0; j < constantCellNum; ++j)
+	{
+		cout<<' ' << j+1;
+	}
+	/*-----------------------------columm number will be shown at end row---------------------------------*/
+
+	cout<<endl;
 }
 
 void getInput() //takes co-ordinate number as input. if cell is empty/noBomb, then cell is discovered. if co-ordinates are negative, then flag the cell.
 {
 	int i,j;
 	cin >>i >>j;
-	i=i-1; j=j-1; //first cell is 0,0 for computer; 1,1 for human.
-	if (cell[i][j] == '*') //stepped on the mine, you are shredded into pieces.
+
+	if (i > constantCellNum || j > constantCellNum || i < -1*constantCellNum || j < -1*constantCellNum)
 	{
-		gameOver = true; //"gameOver == true" means the while loop in main() will break, thus ending the program.
-		cout<<"GAME OVER.\nBETTER LUCK NEXT TIME.\n";
+		cout<<"\tInvalid Input.\nEnter X and then Y coordinate again.\n";
 	}
-	else
+	else if (i<0 && j<0) //flag the cell
 	{
-		discoveredCell[i][j] = true; //if true, showPuzzle() will show the number of bomb around the cell[i][j]
-		totalDiscoveredCellNum++;
+		i=i+1; j=j+1; //first cell is 0,0 for computer; 1,1 for human.
+		discoveredCell[-1*i][-1*j] = 2; //if 2, showPuzzle() will show F/flag on the cell.
+	}
+
+	else if(i>0 && j>0)
+	{
+		i=i-1; j=j-1; //first cell is 0,0 for computer; 1,1 for human.
+		if (cell[i][j] == '*') //stepped on the mine, you are shredded into pieces.
+		{
+			gameOver = true; //"gameOver == true" means the while loop in main() will break, thus ending the program.
+			cout<<"GAME OVER.\nBETTER LUCK NEXT TIME.\n";
+		}
+		else
+		{
+			discoveredCell[i][j] = 1; //if 1/true, showPuzzle() will show the number of bomb around the cell[i][j]
+			totalDiscoveredCellNum++;
+		}
 	}
 }
 
